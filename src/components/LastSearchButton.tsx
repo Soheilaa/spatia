@@ -1,9 +1,10 @@
 const LastSearchButton = () => {
     return (
-      <button className="search-style-button">
-        <span className="material-icons"></span>
+      <button className="search-style-button glass">
+        <span className="material-icons">history</span>
         Last Search Result
       </button>
+    
     );
   };
   

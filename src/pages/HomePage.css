@@ -1,0 +1,104 @@
+
+.glass {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 20px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  }
+  
+
+  .actions-wrapper {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    z-index: 1000;
+  }
+
+  .menu-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 10px;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    z-index: 1001;
+    transition: 0.2s ease;
+  }
+  
+  .menu-icon:hover {
+    transform: scale(1.1);
+  }
+  
+  /* Search input with icon */
+  .search-bar {
+    display: flex;
+    align-items: center;
+    padding: 12px 18px;
+    width: 280px;
+    border-radius: 30px;
+    border: none;
+    transition: all 0.3s ease;
+  }
+  .search-bar input {
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #3d3d3d;
+    font-size: 16px;
+    flex: 1;
+  }
+  .search-bar span.material-icons {
+    color: #3d3d3d;
+    margin-right: 10px;
+    cursor: pointer;
+  }
+  
+  /* Buttons */
+  .search-style-button {
+    padding: 12px 25px;
+    font-size: 15px;
+    font-weight: 500;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ffffff22, #ffffff11);
+    color: #3d3d3d;
+    backdrop-filter: blur(10px);
+    transition: 0.2s ease;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .search-style-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .mapboxgl-canvas {
+    cursor: default !important;
+  }  
+
+  .mapboxgl-ctrl-top-right {
+    display: none !important;
+  }
+  
+  @media (max-width: 600px) {
+    .actions-wrapper {
+      top: 50%;
+      width: 90%;
+    }
+    .search-bar {
+      width: 90%;
+    }
+  }
+  
