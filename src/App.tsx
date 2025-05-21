@@ -1,15 +1,11 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import LocationPage from './pages/LocationPage';
+import { RouterProvider } from "react-router-dom";
+import router from "./AppRouter";
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/location/:lat/:lon" element={<LocationPage />} />
-      </Routes>
-    </BrowserRouter>
+    <main>
+      <RouterProvider router={router} />
+    </main>
   );
 }
 
