@@ -1,14 +1,33 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Map from "../components/Map";
-<link
-  href="https://fonts.googleapis.com/icon?family=Material+Icons"
-  rel="stylesheet"
-/>;
+import "./LocationPage.css";
 
 const LocationPage = () => {
   const { lat, lon } = useParams();
+  const navigate = useNavigate();
 
-  return <Map lat={Number(lat)} lon={Number(lon)} opacity="100%" />;
+  const handleBack = () => {
+    navigate("/");
+  };
+
+  return (
+    <div className="location-page-container">
+      <button className="back-button" onClick={handleBack}>
+        <span className="material-icons">arrow_back</span>
+        Back
+      </button>
+
+      <Map
+        lat={Number(lat)}
+        lon={Number(lon)}
+        opacity="1"
+        isStatic={false}
+        showMarker={true}
+        showParking={true}
+        showControls={true}
+      />
+    </div>
+  );
 };
 
 export default LocationPage;
