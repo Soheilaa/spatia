@@ -1,104 +1,168 @@
+.homepage-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
 
-.glass {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 20px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  }
-  
+/* Background map layer */
+.homepage-container > div:first-child {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  opacity: 0.5;
+  pointer-events: none;
+}
 
-  .actions-wrapper {
-    position: absolute;
-    top: 45%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    z-index: 1000;
-  }
+/* Menu icon */
+.menu-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 2;
+}
 
-  .menu-icon {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.15);
-    padding: 10px;
-    border-radius: 50%;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
-    z-index: 1001;
-    transition: 0.2s ease;
-  }
-  
-  .menu-icon:hover {
-    transform: scale(1.1);
-  }
-  
-  /* Search input with icon */
-  .search-bar {
-    display: flex;
-    align-items: center;
-    padding: 12px 18px;
-    width: 280px;
-    border-radius: 30px;
-    border: none;
-    transition: all 0.3s ease;
-  }
-  .search-bar input {
-    border: none;
-    outline: none;
-    background: transparent;
-    color: #3d3d3d;
-    font-size: 16px;
-    flex: 1;
-  }
-  .search-bar span.material-icons {
-    color: #3d3d3d;
-    margin-right: 10px;
-    cursor: pointer;
-  }
-  
-  /* Buttons */
-  .search-style-button {
-    padding: 12px 25px;
-    font-size: 15px;
-    font-weight: 500;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    background: linear-gradient(135deg, #ffffff22, #ffffff11);
-    color: #3d3d3d;
-    backdrop-filter: blur(10px);
-    transition: 0.2s ease;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  .search-style-button:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: translateY(-2px);
-  }
+/* Centered actions */
+.actions-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 90%;
+  max-width: 420px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
 
-  .mapboxgl-canvas {
-    cursor: default !important;
-  }  
+/* Search input container */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  width: 90%;
+  height: 52px; /* 👈 SAME as button */
+  background: white;
+  border-radius: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 
-  .mapboxgl-ctrl-top-right {
-    display: none !important;
+/* The input itself */
+.search-bar input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 16px;
+  color: #333;
+  line-height: 52px; /* Vertically centers text */
+}
+
+/* Search icon */
+.search-bar .material-icons {
+  font-size: 22px;
+  color: #666;
+  cursor: pointer;
+}
+
+
+.search-style-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 52px;
+  width: 100%;
+  padding: 0 20px;
+  border-radius: 40px;
+  background: linear-gradient(135deg, #ffffffcc, #eeeeeeaa);
+  backdrop-filter: blur(10px);
+  color: #333;
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+
+.search-style-button .material-icons {
+  font-size: 20px;
+}
+
+.search-style-button:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.search-style-button .material-icons {
+  font-size: 20px;
+  margin: 0;
+}
+
+/* =============== Search Result List =============== */
+.search-results {
+  margin-top: 8px;
+  width:90%;
+  max-height: 250px;
+  overflow-y: auto;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.3s ease-out;
+  z-index: 20;
+}
+
+/* Smooth appearance */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
-  
-  @media (max-width: 600px) {
-    .actions-wrapper {
-      top: 50%;
-      width: 90%;
-    }
-    .search-bar {
-      width: 90%;
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
+}
+
+/* Each result item */
+.search-results li {
+  list-style: none;
+  padding: 12px 18px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.search-results li:hover {
+  background-color: #f0f0f0;
+}
+
+/* Result button inside li */
+.search-results button {
+  all: unset;
+  width: 90%;
+  display: block;
+  font-size: 15px;
+  color: #333;
+  text-align: left;
+}
+.search-results::-webkit-scrollbar {
+  width: 6px;
+}
+.search-results::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 3px;
+}

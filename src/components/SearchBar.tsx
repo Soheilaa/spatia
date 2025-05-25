@@ -89,22 +89,21 @@ const SearchBar: React.FC = () => {
 
   return (
     <div>
+      <div className="search-bar">
+      <span className="material-icons">search</span>
       <input
         type="text"
         placeholder="Search destination..."
         value={query}
         onChange={handleSearch}
       />
+      </div>
       {loading && <p>Loading...</p>}
-      <ul>
+      <ul className="search-results">
         {results.map((result, index) => (
           <li key={index}>
             <button
-              onClick={() =>
-                navigate(
-                  `/location/${result.position.lat}/${result.position.lon}`
-                )
-              }
+              onClick={() => navigate(`/location/${result.position.lat}/${result.position.lon}`)}
             >
               {result.address.freeformAddress}
             </button>

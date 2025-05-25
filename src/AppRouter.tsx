@@ -5,7 +5,7 @@ import LocationPage from "./pages/LocationPage";
 const AppRouter = createBrowserRouter([
   {
     path: "/",
-    element: <HomePage />,
+    element: <HomePage lat={57.70887} lon={11.97456} />,
   },
   {
     path: "/location/:lat/:lon",
