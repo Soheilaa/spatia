@@ -24,10 +24,42 @@ function Map({
 }: MapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [center, setCenter] = useState({ lat, lon });
+  const [currentLocation, setCurrentLocation] = useState({ lat, lon });
+  const [showRoute, setShowRoute] = useState(false);
   const [selectedInfo, setSelectedInfo] = useState<any>(null);
   const TOMTOM_API_KEY = "c29dCbhTSr7TEmewAB46g3cBgppCWWHY";
 
-  function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const mapInstance = useRef<tt.Map | null>(null);
+
+  function getCurrentLocation(): Promise<{ lat: number; lon: number }> {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        alert("Geolocation not supported.");
+        reject("Geolocation not supported.");
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          const coords = { lat: latitude, lon: longitude };
+          setCurrentLocation(coords);
+          resolve(coords); // ✅ Return the coordinates
+        },
+        (err) => {
+          console.error("Geolocation error:", err);
+          alert("Could not retrieve location.");
+          reject(err);
+        }
+      );
+    });
+  }
+
+  function haversineDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number {
     const R = 6371e3;
     const toRad = (deg: number) => deg * (Math.PI / 180);
     const φ1 = toRad(lat1);
@@ -35,7 +67,9 @@ function Map({
     const Δφ = toRad(lat2 - lat1);
     const Δλ = toRad(lon2 - lon1);
 
-    const a = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+    const a =
+      Math.sin(Δφ / 2) ** 2 +
+      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
@@ -53,6 +87,7 @@ function Map({
       doubleClickZoom: !isStatic,
       dragRotate: !isStatic,
     });
+    mapInstance.current = map;
 
     map.on("moveend", () => {
       const c = map.getCenter();
@@ -94,14 +129,30 @@ function Map({
           `https://data.goteborg.se/ParkingService/v2.3/PrivateTollParkings/887ee9f1-5211-42dd-98f9-2c6e2cb96b04?latitude=${lat}&longitude=${lon}&radius=500&format=Json`
         );
         res.data.forEach((spot: any) => {
-          const [lonStr, latStr] = spot.WKT.replace("POINT (", "").replace(")", "").split(" ");
+          const [lonStr, latStr] = spot.WKT.replace("POINT (", "")
+            .replace(")", "")
+            .split(" ");
           const latNum = parseFloat(latStr);
           const lonNum = parseFloat(lonStr);
-          const dist = haversineDistance(center.lat, center.lon, latNum, lonNum);
-          const el = createStyledMarker("#b22222", "#8b0000", spot.ParkingCost?.match(/\d+\skr\/tim/), spot.ParkingCost?.match(/\d{1,2}-\d{1,2}/));
+          const dist = haversineDistance(
+            center.lat,
+            center.lon,
+            latNum,
+            lonNum
+          );
+          const el = createStyledMarker(
+            "#b22222",
+            "#8b0000",
+            spot.ParkingCost?.match(/\d+\skr\/tim/),
+            spot.ParkingCost?.match(/\d{1,2}-\d{1,2}/)
+          );
           const marker = new tt.Marker({ element: el })
             .setLngLat([lonNum, latNum])
-            .setPopup(new tt.Popup().setHTML(`<strong>${spot.Name}</strong><br/>🔴 Private Paid Parking`))
+            .setPopup(
+              new tt.Popup().setHTML(
+                `<strong>${spot.Name}</strong><br/>🔴 Private Paid Parking`
+              )
+            )
             .addTo(map);
 
           el.style.cursor = "pointer";
@@ -114,6 +165,8 @@ function Map({
               info: spot.FreeText,
               distance: dist,
               source: "Goteborg",
+              lat: latNum,
+              lon: lonNum,
             });
           });
         });
@@ -129,19 +182,36 @@ function Map({
         );
         res.data.forEach((spot: any) => {
           if (!spot.WKT.startsWith("LINESTRING")) return;
-          const first = spot.WKT.replace("LINESTRING (", "").replace(")", "").split(",")[0].trim();
+          const first = spot.WKT.replace("LINESTRING (", "")
+            .replace(")", "")
+            .split(",")[0]
+            .trim();
           const [lonStr, latStr] = first.split(" ");
           const latNum = parseFloat(latStr);
           const lonNum = parseFloat(lonStr);
-          const dist = haversineDistance(center.lat, center.lon, latNum, lonNum);
-          const el = createStyledMarker("#4CAF50", "#2e7d32", "Free", spot.MaxParkingTime);
+          const dist = haversineDistance(
+            center.lat,
+            center.lon,
+            latNum,
+            lonNum
+          );
+          const el = createStyledMarker(
+            "#4CAF50",
+            "#2e7d32",
+            "Free",
+            spot.MaxParkingTime
+          );
           const marker = new tt.Marker({ element: el })
             .setLngLat([lonNum, latNum])
-            .setPopup(new tt.Popup().setHTML(`<strong>${spot.Name}</strong><br/>🟢 Free Parking`))
+            .setPopup(
+              new tt.Popup().setHTML(
+                `<strong>${spot.Name}</strong><br/>🟢 Free Parking`
+              )
+            )
             .addTo(map);
 
           el.style.cursor = "pointer";
-          el.addEventListener("click", () => {
+          el.addEventListener("click", async () => {
             setSelectedInfo({
               name: spot.Name,
               type: "Free Public",
@@ -149,11 +219,13 @@ function Map({
               info: spot.FreeText,
               distance: dist,
               source: "Goteborg",
+              lat: latNum,
+              lon: lonNum,
             });
           });
         });
-      } catch (error) {
-        console.error("Free public parking error:", error);
+      } catch (err) {
+        console.warn("Could not get information", err);
       }
     }
 
@@ -164,15 +236,32 @@ function Map({
         );
         res.data.forEach((spot: any) => {
           if (!spot.WKT.startsWith("LINESTRING")) return;
-          const first = spot.WKT.replace("LINESTRING (", "").replace(")", "").split(",")[0].trim();
+          const first = spot.WKT.replace("LINESTRING (", "")
+            .replace(")", "")
+            .split(",")[0]
+            .trim();
           const [lonStr, latStr] = first.split(" ");
           const latNum = parseFloat(latStr);
           const lonNum = parseFloat(lonStr);
-          const dist = haversineDistance(center.lat, center.lon, latNum, lonNum);
-          const el = createStyledMarker("#228B22", "#0f5f0f", spot.ParkingCost?.match(/\d+\skr\/tim/), spot.ParkingCost?.match(/\d{1,2}-\d{1,2}/));
+          const dist = haversineDistance(
+            center.lat,
+            center.lon,
+            latNum,
+            lonNum
+          );
+          const el = createStyledMarker(
+            "#228B22",
+            "#0f5f0f",
+            spot.ParkingCost?.match(/\d+\skr\/tim/),
+            spot.ParkingCost?.match(/\d{1,2}-\d{1,2}/)
+          );
           const marker = new tt.Marker({ element: el })
             .setLngLat([lonNum, latNum])
-            .setPopup(new tt.Popup().setHTML(`<strong>${spot.Name}</strong><br/>🟢 Public Toll Parking`))
+            .setPopup(
+              new tt.Popup().setHTML(
+                `<strong>${spot.Name}</strong><br/>🟢 Public Toll Parking`
+              )
+            )
             .addTo(map);
 
           el.style.cursor = "pointer";
@@ -185,6 +274,8 @@ function Map({
               info: spot.FreeText,
               distance: dist,
               source: "Goteborg",
+              lat: latNum,
+              lon: lonNum,
             });
           });
         });
@@ -193,7 +284,12 @@ function Map({
       }
     }
 
-    function createStyledMarker(bg: string, border: string, price: string | null, time: string | null) {
+    function createStyledMarker(
+      bg: string,
+      border: string,
+      price: string | null,
+      time: string | null
+    ) {
       const wrapper = document.createElement("div");
       wrapper.style.cssText = `
         display: flex;
@@ -215,7 +311,9 @@ function Map({
         text-align: center;
         line-height: 1.3;
       `;
-      head.innerHTML = `<div>${price || "?"}</div><div style="font-size: 10px; opacity: 0.85">${time || ""}</div>`;
+      head.innerHTML = `<div>${
+        price || "?"
+      }</div><div style="font-size: 10px; opacity: 0.85">${time || ""}</div>`;
 
       const tail = document.createElement("div");
       tail.style.cssText = `
@@ -232,6 +330,71 @@ function Map({
       return wrapper;
     }
   }, [lat, lon, isStatic, showMarker, showParking, showControls]);
+
+  function drawRoute(start: [number, number], end: [number, number]) {
+    const map = mapInstance.current;
+    if (!map) return;
+    const routeUrl = `https://api.tomtom.com/routing/1/calculateRoute/${start[1]},${start[0]}:${end[1]},${end[0]}/json?key=${TOMTOM_API_KEY}&traffic=false`;
+
+    axios.get(routeUrl).then((res) => {
+      const coordinates = res.data.routes[0].legs[0].points.map((p: any) => [
+        p.longitude,
+        p.latitude,
+      ]);
+
+      const geoJson = {
+        type: "Feature",
+        properties: {},
+        geometry: {
+          type: "LineString",
+          coordinates,
+        },
+      } as const;
+
+      if (map.getLayer("route")) map.removeLayer("route");
+      if (map.getSource("route")) map.removeSource("route");
+
+      map.addLayer({
+        id: "route",
+        type: "line",
+        source: {
+          type: "geojson",
+          data: geoJson,
+        },
+        paint: {
+          "line-color": "#007aff",
+          "line-width": 5,
+        },
+      });
+
+      // 📍 Fit map to route bounds
+      const bounds = new tt.LngLatBounds();
+      coordinates.forEach((coord: tt.LngLatBoundsLike | tt.LngLatLike) =>
+        bounds.extend(coord)
+      );
+      map.fitBounds(bounds, {
+        padding: 100,
+        duration: 1000,
+        linear: false,
+      });
+    });
+  }
+
+  async function getRoute(): Promise<void> {
+    if (!selectedInfo) return;
+
+    try {
+      const location = await getCurrentLocation();
+      drawRoute(
+        [location.lon, location.lat],
+        [selectedInfo.lon, selectedInfo.lat]
+      );
+      setShowRoute(true);
+    } catch (err) {
+      console.warn("Could not get current location for routing", err);
+      alert("Failed to get current location.");
+    }
+  }
 
   return (
     <div style={{ position: "relative" }}>
@@ -262,18 +425,37 @@ function Map({
           }}
         >
           <h3>{selectedInfo.name}</h3>
-          <p><strong>Type:</strong> {selectedInfo.type}</p>
-          {selectedInfo.cost && <p><strong>Cost:</strong> {selectedInfo.cost}</p>}
-          {selectedInfo.time && <p><strong>Time:</strong> {selectedInfo.time}</p>}
-          {selectedInfo.info && <p><strong>Info:</strong> {selectedInfo.info}</p>}
+          <p>
+            <strong>Type:</strong> {selectedInfo.type}
+          </p>
+          {selectedInfo.cost && (
+            <p>
+              <strong>Cost:</strong> {selectedInfo.cost}
+            </p>
+          )}
+          {selectedInfo.time && (
+            <p>
+              <strong>Time:</strong> {selectedInfo.time}
+            </p>
+          )}
+          {selectedInfo.info && (
+            <p>
+              <strong>Info:</strong> {selectedInfo.info}
+            </p>
+          )}
           {selectedInfo.distance && (
-            <p><strong>Distance:</strong> {(selectedInfo.distance / 1000).toFixed(2)} km</p>
+            <p>
+              <strong>Distance:</strong>{" "}
+              {(selectedInfo.distance / 1000).toFixed(2)} km
+            </p>
           )}
           <div style={{ marginTop: "20px", display: "flex", gap: "10px" }}>
             <button
               style={{ padding: "8px 12px" }}
               onClick={() => {
-                const stored = JSON.parse(localStorage.getItem("favorites") || "[]");
+                const stored = JSON.parse(
+                  localStorage.getItem("favorites") || "[]"
+                );
                 const updated = [...stored, selectedInfo];
                 localStorage.setItem("favorites", JSON.stringify(updated));
                 alert("Added to favorites!");
@@ -281,7 +463,9 @@ function Map({
             >
               ⭐ Favorite
             </button>
-            <button style={{ padding: "8px 12px" }}>📍 Navigate</button>
+            <button style={{ padding: "8px 12px" }} onClick={getRoute}>
+              📍 Navigate
+            </button>
             <button style={{ padding: "8px 12px" }}>🔗 Share</button>
           </div>
           <button
