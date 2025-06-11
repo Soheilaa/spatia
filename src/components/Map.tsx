@@ -195,12 +195,23 @@ function Map({
             latNum,
             lonNum
           );
-          const el = createStyledMarker(
-            "#4CAF50",
-            "#2e7d32",
-            "Free",
-            spot.MaxParkingTime
-          );
+
+            let bg = "#4CAF50"; 
+            let border = "#2e7d32";
+            let label = "Free";
+
+            if (spot.ParkingCost) {
+              bg = "#b22222";
+              border = "#8b0000";
+              label = spot.ParkingCost.match(/\d+\skr\/tim/)?.[0] || "Paid";
+            } else if (spot.MaxParkingTime) {
+              bg = "#FFA500";
+              border = "#cc8400";
+              label = `Free ${spot.MaxParkingTime}`;
+            }
+
+            const el = createStyledMarker(bg, border, label, spot.MaxParkingTime);
+
           const marker = new tt.Marker({ element: el })
             .setLngLat([lonNum, latNum])
             .setPopup(
