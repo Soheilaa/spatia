@@ -23,13 +23,23 @@ const HomePage = ({ lat, lon }: HomePageProps) => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
+        localStorage.setItem("lastSearch", JSON.stringify({
+          lat: latitude,
+          lon: longitude,
+        }));
         navigate(`/location/${latitude}/${longitude}`);
       },
       (err) => {
         console.error("Geolocation error:", err);
         alert("Could not retrieve location.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
       }
     );
+    
   };
 
   return (
